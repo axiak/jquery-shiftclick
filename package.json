@@ -1,0 +1,33 @@
+{
+    "name": "jquery.shiftclick",
+    "version": "0.1.0",
+    "title": "jQuery.shiftClick",
+    "author": {
+        "name": "Michael Axiak",
+        "url": "https://github.com/axiak"
+    },
+    "licenses" : [
+        {
+            "type": "MIT",
+            "url": "MIT-LICENSE.txt"
+        },
+        {
+            "type": "GPLv2",
+            "url": "GPL-LICENSE.txt"
+        }
+    ],
+    "dependencies": {
+        "jquery": "1.5"
+    },
+    "description": "Easily implement gmail-style shift clicking in your site.",
+    "keywords": [
+        "shift",
+        "click",
+        "shift-click",
+        "gmail"
+    ],
+    "homepage": "https://github.com/axiak/jquery-shiftclick",
+    "files": [
+        "src/jquery.shiftclick.js"
+    ]
+}
