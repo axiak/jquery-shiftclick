@@ -1,0 +1,4 @@
+<project name="shiftclick">
+  <property name="plugin.version" value="0.2.0" />
+  <import file="./build/plugin.xml"/>
+</project>

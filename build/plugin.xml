@@ -1,0 +1,137 @@
+<!--
+  - Common build file that is included by all plugins.
+  -->
+<project name="plugin">
+
+	<property name="plugin.name" value="${ant.project.name}" />
+	<dirname property="plugin.dir" file="${ant.file}" />
+	<basename property="plugin.dir.name" file="${plugin.dir}" />
+	
+	<dirname property="root.dir" file="${ant.file.plugin}/../" />
+	<property name="build.dir" value="${root.dir}/build" />
+	
+	<property name="work.dir" value="${build.dir}/work" />
+	<property name="plugin.work.dir" value="${work.dir}/${plugin.name}" />
+	<property name="plugin.dist.dir" value="${plugin.work.dir}/dist" />
+	<property name="plugin.all.js" value="jquery.${plugin.name}-${plugin.version}.js" />
+	
+	<!--
+	  - A plugin can call this macro to express a dependency to another plugin-module. 
+	  -->
+	<macrodef name="require">
+		<attribute name="plugin" />
+		<sequential>
+			<ant dir="${root.dir}/@{plugin}/" target="-require" inheritAll="false">
+				<property name="target" value="${plugin.work.dir}/lib" />
+			</ant>
+		</sequential>
+	</macrodef>
+	
+	<!--
+	  - Internal target used by the require macro.
+	  -->
+	<target name="-require" depends="filter,check">
+		<fail unless="target" />
+		<mkdir dir="${target}" />
+		<copy todir="${target}" overwrite="yes">
+			<fileset dir="${plugin.work.dir}">
+				<include name="*.js" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<taskdef name="yui-compressor" classname="net.noha.tools.ant.yuicompressor.tasks.YuiCompressorTask">
+		<classpath>
+			<fileset dir="${build.dir}">
+				<include name="yui*.jar" />
+			</fileset>
+		</classpath>
+	</taskdef>
+	
+	<taskdef name="jslint" classname="com.googlecode.jslint4java.ant.JSLintTask">
+		<classpath>
+			<fileset dir="${build.dir}">
+				<include name="jslint*.jar" />
+			</fileset>
+		</classpath>
+    </taskdef>
+    
+	<!--
+	  - Cleans the plugin's work directory.
+	  -->
+	<target name="clean">
+		<delete dir="${plugin.work.dir}" />
+	</target>
+	
+	<!--
+	  - Creates a distribution archive.
+	  -->
+	<target name="dist" depends="minify">
+		<copy todir="${plugin.dist.dir}">
+			<fileset dir="${plugin.work.dir}">
+				<include name="*.md" />
+			</fileset>
+			<mapper type="glob" from="*.md" to="*" />
+		</copy>
+		<copy todir="${plugin.dist.dir}">
+			<fileset dir="${plugin.work.dir}">
+				<include name="*.html" />
+			</fileset>
+		</copy>
+		<replaceregexp match="&lt;!-- \[Dependencies\[(.*)\]\] --&gt;" flags="si" 
+			replace="&lt;script src=&quot;${plugin.all.js}&quot; /&gt;">
+			<fileset dir="${plugin.dist.dir}">
+				<include name="*.html" />
+			</fileset>
+		</replaceregexp>
+		<mkdir dir="${build.dir}/dist" />
+		<zip destfile="${build.dir}/dist/${plugin.name}-${plugin.version}.zip" basedir="${plugin.dist.dir}" />
+	</target>
+	<target name="check">
+		<jslint>
+			<formatter type="plain" />
+			<fileset dir="${plugin.dir}/src" includes="*.js" />
+		</jslint>
+	</target>
+	
+	<!-- 
+	  - Minifies all JavaScript files in the plugin's dist directory.
+	  -->
+	<target name="minify" depends="concat">
+		<yui-compressor warn="false" jssuffix=".min.js" fromdir="${plugin.dist.dir}" todir="${plugin.dist.dir}">
+			<include name="*.js" />
+			<exclude name="*.min.js" />
+		</yui-compressor>
+	</target>
+	
+	<!-- 
+	  - Concatenates all files in the work directory and all dependencies in work/lib. 
+	  -->
+	<target name="concat" depends="filter,check">
+		<delete file="${plugin.dist.dir}" />
+		<mkdir dir="${plugin.dist.dir}" />
+		<concat destfile="${plugin.dist.dir}/${plugin.all.js}" fixlastline="yes">
+			<fileset dir="${plugin.work.dir}">
+				<include name="*.js" />
+				<include name="lib/*.js" />
+			</fileset>
+		</concat>
+	</target>
+	
+	<!--
+	  - Filters source files and replaces special tokens.
+	  -->
+	<target name="filter">
+		<copy todir="${plugin.work.dir}" overwrite="yes">
+			<fileset dir="${plugin.dir}/src">
+				<include name="*.js" />
+				<include name="*.html" />
+				<include name="*.md" />
+			</fileset>
+			<filterset begintoken="@{" endtoken="}">
+				<filter token="VERSION" value="${plugin.version}" />
+			</filterset>
+		</copy>
+	</target>
+	
+</project>
