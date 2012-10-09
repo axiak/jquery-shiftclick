@@ -124,21 +124,23 @@
          return true;
      };
 
-     $.fn.shiftClick = function (opts) {
-         if (opts === 'clearCache') {
+     $.fn.shiftClick = function (userOpts) {
+         var opts = {
+             'delegate': 'body',
+             'cache': true,
+             'click': function (click) { this.checked = click; },
+             'status': function () { return this.checked; }
+         };
+
+         if (userOpts === 'clearCache') {
              cacheVersion++;
              return this;
          }
-         if (opts === undefined) {
-             opts = {};
+         if (userOpts === undefined) {
+             userOpts = {};
          }
 
-         $.extend(opts, {
-                      'delegate': 'body',
-                      'cache': true,
-                      'click': function (click) { this.checked = click; },
-                      'status': function () { return this.checked; }
-                      });
+         $.extend(opts, userOpts);
 
          var rangeInfo = {
              '$elements': this,
